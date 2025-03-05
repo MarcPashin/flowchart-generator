@@ -1,0 +1,71 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String      @id @default(uuid())
+  email         String      @unique
+  name          String?
+  password      String
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+  lastLogin     DateTime?   @map("last_login")
+  preferences   Json?
+  flowCharts    FlowChart[]
+
+  @@map("users")
+}
+
+model FlowChart {
+  id            String        @id @default(uuid())
+  userId        String        @map("user_id")
+  title         String
+  description   String?
+  content       Json?
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+  lastExported  DateTime?     @map("last_exported")
+  version       Int           @default(1)
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  nodes         Node[]
+  connections   Connection[]
+
+  @@map("flowcharts")
+}
+
+model Node {
+  id            String        @id @default(uuid())
+  flowchartId   String        @map("flowchart_id")
+  type          String
+  positionX     Int           @map("position_x")
+  positionY     Int           @map("position_y")
+  data          Json
+  style         Json?
+  flowChart     FlowChart     @relation(fields: [flowchartId], references: [id], onDelete: Cascade)
+  outgoing      Connection[]  @relation("SourceNode")
+  incoming      Connection[]  @relation("TargetNode")
+
+  @@map("nodes")
+}
+
+model Connection {
+  id            String        @id @default(uuid())
+  flowchartId   String        @map("flowchart_id")
+  sourceId      String        @map("source_id")
+  targetId      String        @map("target_id")
+  label         String?
+  style         Json?
+  flowChart     FlowChart     @relation(fields: [flowchartId], references: [id], onDelete: Cascade)
+  source        Node          @relation("SourceNode", fields: [sourceId], references: [id], onDelete: Cascade)
+  target        Node          @relation("TargetNode", fields: [targetId], references: [id], onDelete: Cascade)
+
+  @@map("connections")
+}
