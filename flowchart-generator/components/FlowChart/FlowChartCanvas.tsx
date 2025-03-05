@@ -18,6 +18,8 @@ import ReactFlow, {
   BaseEdge,
   EdgeProps,
   getBezierPath,
+  useReactFlow,
+  ReactFlowProvider,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 
@@ -330,17 +332,32 @@ const nodeTypes = {
 const initialNodes: Node[] = [];
 const initialEdges: Edge[] = [];
 
-export default function FlowChartCanvas() {
+function FlowChartContent() {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [selectedEdge, setSelectedEdge] = useState<string | null>(null);
+  const { getViewport, screenToFlowPosition } = useReactFlow();
 
   // Function to add a new node
-  const addNode = useCallback((type: string, position: XYPosition, data: any = {}) => {
+  const addNode = useCallback((type: string, position: XYPosition | null = null, data: any = {}) => {
+    const viewport = getViewport();
+    let nodePosition: XYPosition;
+
+    if (position) {
+      nodePosition = position;
+    } else {
+      // Get the center of the viewport
+      const centerScreen = {
+        x: window.innerWidth / 2,
+        y: window.innerHeight / 2,
+      };
+      nodePosition = screenToFlowPosition(centerScreen);
+    }
+
     const newNode: Node = {
       id: `${type}-${Date.now()}`,
       type,
-      position,
+      position: nodePosition,
       data: {
         label: data.label || type.charAt(0).toUpperCase() + type.slice(1),
         type,
@@ -349,7 +366,7 @@ export default function FlowChartCanvas() {
     };
     
     setNodes((nds) => [...nds, newNode]);
-  }, [setNodes]);
+  }, [setNodes, getViewport, screenToFlowPosition]);
 
   const onEdgeClick = useCallback((event: React.MouseEvent, edge: Edge) => {
     event.stopPropagation();
@@ -519,12 +536,50 @@ export default function FlowChartCanvas() {
       >
         <Controls />
         <MiniMap
-          nodeStrokeColor="#eee"
-          nodeColor="#fff"
+          nodeStrokeColor={(node) => {
+            switch (node.type) {
+              case 'process':
+                return '#10B981';
+              case 'decision':
+                return '#F59E0B';
+              case 'input':
+                return '#EC4899';
+              case 'start':
+                return '#4F46E5';
+              case 'end':
+                return '#EF4444';
+              default:
+                return '#eee';
+            }
+          }}
+          nodeColor={(node) => {
+            switch (node.type) {
+              case 'process':
+                return '#10B981';
+              case 'decision':
+                return '#F59E0B';
+              case 'input':
+                return '#EC4899';
+              case 'start':
+                return '#4F46E5';
+              case 'end':
+                return '#EF4444';
+              default:
+                return '#fff';
+            }
+          }}
           nodeBorderRadius={2}
         />
         <Background color="#aaa" gap={16} />
       </ReactFlow>
     </div>
+  );
+}
+
+export default function FlowChartCanvas() {
+  return (
+    <ReactFlowProvider>
+      <FlowChartContent />
+    </ReactFlowProvider>
   );
 }
