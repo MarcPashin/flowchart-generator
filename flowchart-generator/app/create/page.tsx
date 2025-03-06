@@ -38,6 +38,12 @@ export default function CreateFlowChart() {
   const handleDownload = async () => {
     setIsDownloading(true);
     try {
+      // Hide mini map and tools
+      const miniMap = document.querySelector('.react-flow__minimap') as HTMLElement;
+      const controls = document.querySelector('.react-flow__controls') as HTMLElement;
+      if (miniMap) miniMap.style.display = 'none';
+      if (controls) controls.style.display = 'none';
+
       const element = document.querySelector('.react-flow') as HTMLElement;
       if (!element) throw new Error('Canvas not found');
       
@@ -56,6 +62,10 @@ export default function CreateFlowChart() {
       link.download = `${title.toLowerCase().replace(/\s+/g, '-')}.png`;
       link.href = dataUrl;
       link.click();
+
+      // Restore mini map and tools
+      if (miniMap) miniMap.style.display = '';
+      if (controls) controls.style.display = '';
     } catch (error) {
       console.error('Error downloading flow chart:', error);
       alert('Failed to download flow chart. Please try again.');
