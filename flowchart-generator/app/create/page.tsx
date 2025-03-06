@@ -7,6 +7,7 @@ import FlowChartCanvas from '@/components/FlowChart/FlowChartCanvas';
 import NodeSelector from '@/components/FlowChart/NodeSelector';
 import ColorPicker from '@/components/FlowChart/ColorPicker';
 import { toPng } from 'html-to-image';
+import { supabase } from '@/supabaseClient'; // Adjust the import path as necessary
 
 export default function CreateFlowChart() {
   const { data: session } = useSession();
@@ -21,22 +22,9 @@ export default function CreateFlowChart() {
       // Get flow chart data from the canvas
       const flowChartData = (window as any).exportFlowChart();
       
-      // Save to backend (you'll need to implement this API endpoint)
-      const response = await fetch('/api/flowcharts', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          title,
-          data: flowChartData,
-          userId: session?.user?.email || 'guest',
-        }),
-      });
       
-      if (!response.ok) {
-        throw new Error('Failed to save flow chart');
-      }
+      
+    
       
       alert('Flow chart saved successfully!');
     } catch (error) {
@@ -54,7 +42,7 @@ export default function CreateFlowChart() {
       if (!element) throw new Error('Canvas not found');
       
       const dataUrl = await toPng(element, {
-        backgroundColor: '#ffffff',
+        backgroundColor: 'transparent',
         width: element.offsetWidth * 2,
         height: element.offsetHeight * 2,
         style: {
@@ -122,14 +110,6 @@ export default function CreateFlowChart() {
         </div>
         
         <div className="flex gap-4 h-full">
-          <div className="w-64 bg-light-darker dark:bg-dark-lighter p-4 rounded-lg shadow-lg">
-            <NodeSelector />
-            <div className="mt-6">
-              <h3 className="text-lg font-medium mb-3">Colors</h3>
-              <ColorPicker />
-            </div>
-          </div>
-          
           <div className="flex-1 bg-light-darker dark:bg-dark-lighter rounded-lg overflow-hidden shadow-lg">
             <FlowChartCanvas />
           </div>

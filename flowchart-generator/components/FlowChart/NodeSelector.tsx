@@ -108,7 +108,7 @@ export default function NodeSelector() {
   };
   
   return (
-    <div>
+    <div className="bg-light dark:bg-dark p-4 rounded-lg shadow-md">
       <h3 className="text-lg font-medium mb-3">Add Node</h3>
       
       {feedback && (
